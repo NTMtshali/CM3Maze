@@ -11,7 +11,6 @@
 #include<string>
 #include"mappy_A5.h"
 #include"Collectables.h"
-//
 #include <string>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
