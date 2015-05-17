@@ -14,7 +14,7 @@
 #include <string>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
-
+  //
 #define ScreenWidth 1000
 #define ScreenHeight 700
 #define mapHght 4736
