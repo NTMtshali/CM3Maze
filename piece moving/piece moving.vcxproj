@@ -14,6 +14,7 @@
     <ProjectGuid>{BE8F2C20-A2E9-4AAB-AE3A-B23260B131DB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>piecemoving</RootNamespace>
+    <ProjectName>Maze Game</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -71,7 +72,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\213522460\Documents\Allegro_5\Allegro\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Dwaai Dwaai\Documents\Allegro_5\Allegro\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

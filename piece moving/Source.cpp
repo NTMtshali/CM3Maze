@@ -1,4 +1,3 @@
-	
 #define _CRT_SECURE_NO_WARNINGS
 #include<allegro5\allegro5.h>
 #include<allegro5\allegro_native_dialog.h>
@@ -14,31 +13,31 @@
 #include <string>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
-  //
-#define ScreenWidth 1000
+
+#define ScreenWidth 1000	//dimensions of the display screen
 #define ScreenHeight 700
 #define mapHght 4736
 #define itemSize 5
 using namespace std;
- 
+
 int hrH, hrL, minL, minH, secL, secH ;	  // time variables
+int top, bottom, left, right;
+int score = 0;
+
 bool dlay = false;
 
-int top, bottom, left, right;
-enum menuItems { nGame, lGame, options, credits, Exit };
-int score=0;
-void Next_Part_Draw(int xx, int yy, int xoff, int yoff, COLLECTABLES *Album[3][5], int &score);
-void Initialize_with_pics(COLLECTABLES *Album[3][5]);
-void TimeElapse();
+enum menuItems { nGame, lGame, options, credits, Exit }; //enumerations which assist in scrolling through the menue
 
+void Next_Part_Draw(int xx, int yy, int xoff, int yoff, COLLECTABLES *Album[3][5], int &score); //decleration of the function for displaying the coin pictures on the display screen
+void Initialize_with_pics(COLLECTABLES *Album[3][5]); //decleration of the function that initializes the COLLECTABLES array
+void TimeElapse();
 void DrawTitles(int);
 int clickLink(int);
 void DrawImage();
-void Game();
+void Game(); // Game function
 void Credit();
 
 string Draw1(int increment);
-//ALLEGRO_DISPLAY *display = al_create_display(ScreenWidth, ScreenHeight);
 int main()
 {
 
@@ -50,34 +49,32 @@ int main()
 		return -1;
 	}
 
+	//Initialization and the setting of the display
 	al_set_new_display_flags(ALLEGRO_WINDOWED);
 	ALLEGRO_DISPLAY *display = al_create_display(ScreenWidth, ScreenHeight);
 	al_set_window_title(display, " The Maze Runner");
 
-	if (!display)
+	if (!display)	//checks if display was set properly
 	{
 		al_show_native_message_box(NULL, "Error", "Error", "Cannot create display.", NULL, NULL);
 		return -1;
 	}
 
-
+	//Initialization of the keyboard and neccesary addons
 	al_init_primitives_addon();
-	if (MapLoad("background2.FMP", 1))
-		return -5;
-
 	al_install_keyboard();
-	al_install_mouse();
-
 	al_init_font_addon();
 	al_init_ttf_addon();
 	al_init_image_addon();
 
+	if (MapLoad("background2.FMP", 1)) // loads and checks checks if maze was loaded properly
+		return -5;
 
-	ALLEGRO_BITMAP *backImage = al_load_bitmap("image1.png");
-	ALLEGRO_TIMER *timer = al_create_timer(1.0f / FPS);
-	ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue();
-	//ALLEGRO_KEYBOARD_STATE keyState;
+	ALLEGRO_BITMAP *backImage = al_load_bitmap("image1.png"); //manue background image
+	ALLEGRO_TIMER *timer = al_create_timer(1.0f / FPS);	//timer synchronizes the button presses and the scrolling through the menue
+	ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue(); //queue for keeping track of the events that occure during the display of the main manue
 
+	//registration of the event sources into the que so that they can be detected when they occure
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 	al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -87,16 +84,17 @@ int main()
 
 	//al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 
-	al_start_timer(timer);
+	al_start_timer(timer);	//start time to synchronize the updating of the creen and the button pressed
 
 	while (!done)
 	{
 		hrH = 0, hrL = 0, minL = 0, minH = 0, secL = 0, secH = 0;
 
-		ALLEGRO_EVENT ev;
+		ALLEGRO_EVENT ev; //this object is sort of responsible for recoarding each event that occurrs int the main manue into the queue
 		al_wait_for_event(event_queue, &ev);
-		//al_get_keyboard_state(&keyState);
 
+/******************************************************************SCROLLING THROUGH THE MAIN MENU*******************************************************************************/
+		//This part is respnsible for scrolling through the menue through the recording of the key press events which also results in the execution of the relevent if statements
 		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			done = true;
 
@@ -121,7 +119,7 @@ int main()
 			{
 				if (clickLink(counter) == nGame)
 				{
-					DrawImage();
+					DrawImage();	 //pressing Enter at the new game starts the game
 
 						Game();
 					break;
@@ -151,7 +149,8 @@ int main()
 		}
 
 	}
-
+	/***********************************************************************************************************************************************************************************************/
+	//Destroy the pointers after use to prevent memory leaks
 	MapFreeMem();
 	al_destroy_display(display);
 	al_destroy_bitmap(backImage);
@@ -222,68 +221,55 @@ void DrawImage()
 	al_draw_text(font, al_map_rgb(255, 0, 0), x, y, NULL, "The Maze Runners");
 
 	al_flip_display();
-	//al_rest(2);
-	//al_destroy_bitmap(image2);
-	//al_destroy_font(font);
 }
 
-
+/*************************************************************************************ACTUAL GAME FUNCTION********************************************************************/
 void Game()
 {
 
 	enum Direction { UP, LEFT, DOWN, RIGHT };
 	bool draw = false, active = false;
 	float speed = 10;
-	int xoff = 0;					 //10, 384
+	int xoff = 0;					 //xoff and yoff can be thought of as the coordinates of the player on the maze and also as the offsets of the maze reletive to the display screen
 	int yoff = 384;
-	int xx = 0;
+	int xx = 0;						 //xx and yy of are the coin picture offsets reletive to the display screen
 	int yy = 0;
-	const float min = 60;
+	const float FPS = 60.0;			 //constant for the timer used for updating the display
 	int dir = UP, sourceX = 64, sourceY = 0;
 
+	//Installation and initialization of the keyboard, sound and image, font addons.
 	al_install_keyboard();
 	al_init_image_addon();
 	al_install_audio();
 	al_init_acodec_addon();
-	
-
-
-	ALLEGRO_BITMAP *Trophy = al_load_bitmap("trophy.png");
-
-
-	ALLEGRO_SAMPLE *soundEffect = al_load_sample("Footsteps.wav");
-	al_reserve_samples(1);
-
-	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);
-	ALLEGRO_BITMAP *player = al_load_bitmap("USE.png");
-	ALLEGRO_BITMAP *player2 = al_load_bitmap("WALL.png");
-	//ALLEGRO_DISPLAY *displays = al_create_display(ScreenWidth, ScreenHeight);
-
 	al_init_font_addon();
 	al_init_ttf_addon();
 
-	ALLEGRO_KEYBOARD_STATE keyState;
-	ALLEGRO_EVENT_QUEUE *events = al_create_event_queue();
-	ALLEGRO_TIMER *timer = al_create_timer(1/60.0);
+	al_reserve_samples(1);
+	//Creation and initialization of the graphics
+	ALLEGRO_BITMAP *Trophy = al_load_bitmap("trophy.png");
+	ALLEGRO_SAMPLE *soundEffect = al_load_sample("Footsteps.wav");
+	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);
+	ALLEGRO_BITMAP *player = al_load_bitmap("USE.png");
+
+	ALLEGRO_KEYBOARD_STATE keyState; //used to check which key was pressed
+	ALLEGRO_EVENT_QUEUE *events = al_create_event_queue(); //created to hold events that occure and to allow them to be executed synchronously
+	ALLEGRO_TIMER *timer = al_create_timer(1/FPS);// created to allow for a smooth update of the screen after each event 
 	
 
 	ALLEGRO_COLOR grass = al_map_rgb(44, 117, 255);
-
 	BLKSTR *Tile1, *Tile2;
-	COLLECTABLES *Album[3][5];
+	
+	COLLECTABLES *Album[3][5];		//decleration and initialization of the COLLECTABLES array which contains the coin pictures
+	Initialize_with_pics(Album);
 
+	//registration of event sources so that they can be detected when they occure
 	al_register_event_source(events, al_get_keyboard_event_source());
 	al_register_event_source(events, al_get_timer_event_source(timer));
 
-
-
-	bool isActive = false;
-
-
-
-	Initialize_with_pics(Album);
 	al_start_timer(timer);
 
+	bool isActive = false; // used as the while condition and allows to game to exit when escape is pressed
 	while (!isActive)
 	{
 
@@ -294,83 +280,75 @@ void Game()
 		if (ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE || hrL >= 1) 
 		{
 			isActive = true;
-
-
-
-			/*al_destroy_timer(timer);
-			al_destroy_bitmap(player);
-			al_destroy_sample(soundEffect);
-			al_destroy_event_queue(events);*/
-
-
 		}
 
-		else if (ev.type == ALLEGRO_EVENT_TIMER)
+		else if (ev.type == ALLEGRO_EVENT_TIMER)			//when the timer ticks, the relevent 'if statement' executes
 		{
 			active = true;
-			if (al_key_down(&keyState, ALLEGRO_KEY_UP))
+			if (al_key_down(&keyState, ALLEGRO_KEY_UP))			//if key UP is pressed, do the following
 			{
-				yoff -= speed;
+				yoff -= speed;				 //offset the map and the displayed coin pictures, opposint to pressed direction
 				yy -= speed;
 				dir = UP;
-				if (yoff < 0)
+				if (yoff < 0)			//if the yoff is negetive, set it to zero so that during the display the dark part of the background will not show
 					yoff = 0;
 
 
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff);
-				Tile2 = MapGetBlockInPixels(xoff + 25, yoff);
+				Tile1 = MapGetBlockInPixels(xoff, yoff);			//get the block where the top left point of the player photo will lie
+				Tile2 = MapGetBlockInPixels(xoff + 25, yoff);		 //get the block where the top right point of the player photo will lie
 
-				if (Tile1->tl || Tile2->tl)
-				{
+				if (Tile1->tl || Tile2->tl)			//If the top left and/or the top right point of the photo lie on the forbidden block
+				{									//undo the above decrementation. This also prevents the coin picture from moving into forbidden region
 					yoff = yoff + speed;
 					yy = yy + speed;
 				}
 				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);
 			}
-			else if (al_key_down(&keyState, ALLEGRO_KEY_DOWN))
+			else if (al_key_down(&keyState, ALLEGRO_KEY_DOWN))		   // if key DOWN is pressed, do the following:
 			{
-				yoff += speed;
+				yoff += speed;										  //offset the map and the displayed coin pictures, opposint to pressed direction
 				yy += speed;
 				dir = DOWN;
 
-				if (yoff>mapHght - ScreenHeight)
+				if (yoff>mapHght - ScreenHeight)						 //this prevents the dark part at the bottom of the background from showing
 					yoff = mapHght - ScreenHeight;
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff + 44);
-				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 44);
-				if (Tile1->tl || Tile2->tl)
-				{
+				Tile1 = MapGetBlockInPixels(xoff, yoff + 44);			  //get the block where the bottom left point of the player photo lies
+				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 44);			//get the block where the bottom right point of the player photo lies
+
+				if (Tile1->tl || Tile2->tl)									  //if the bottom left and/or right point of the playert lie on the forbidden block, undo the above incrementations.
+				{																  //This also prevents the coin picture from moving into forbidden region
 					yoff = yoff - speed;
 					yy = yy - speed;
 				}
-				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);
+				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);  //play sound after each movement
 			}
-			else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT))
+			else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT))				 //if key UP is pressed, do the	the follwing:
 			{
 				xoff -= speed;
-				xx -= speed;
+				xx -= speed;												 //offset the map and the displayed coin picures , opposite to the direction of the pressed button
 
 				dir = LEFT;
-				if (xoff < 0)
+				if (xoff < 0)												//this prevents the dark part at the far left of the map from showing
 				{
 					xoff = 0;
 					xx = 0;
 				}
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff);
-				Tile2 = MapGetBlockInPixels(xoff, yoff + 44);
+				Tile1 = MapGetBlockInPixels(xoff, yoff);					 //get the block where the top left point of the player photo lies
+				Tile2 = MapGetBlockInPixels(xoff, yoff + 44);				  //get the block where the bottom left of the phot lies
 				if (Tile1->tl || Tile2->tl)
 				{
-					xoff = xoff + speed;
-					xx = xx + speed;
+					xoff = xoff + speed;										  //if the top left and/or bottom right point of the playert lie on the forbidden block, undo the above incrementations.
+					xx = xx + speed;												//This also prevents the coin picture from moving into forbidden region
 				}
 
 				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);
 			}
 			else if (al_key_down(&keyState, ALLEGRO_KEY_RIGHT))
 			{
-				xoff += speed;
+				xoff += speed;	//offset the maze and the displayed coins in the direction opposite the pressed button
 				xx += speed;
 				dir = RIGHT;
 
@@ -380,8 +358,8 @@ void Game()
 					//al_draw_text(font, grass, xf, yf, ALLEGRO_ALIGN_CENTER, "WIN");
 				}
 
-				Tile1 = MapGetBlockInPixels(xoff + 25, yoff);
-				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 40);
+				Tile1 = MapGetBlockInPixels(xoff + 25, yoff); //get the block where the top right point of the player photo will lies
+				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 40);   //get the block where the bottom right point of the player photo lies
 				if (Tile1->tl || Tile2->tl)
 				{
 					xoff = xoff - speed;
@@ -410,7 +388,7 @@ void Game()
 		}
 
 		if (draw)
-		{
+		{		//updating the maze, player, coin picture position and the time
 
 			if (xoff >= 7040)
 			{
@@ -449,7 +427,7 @@ void Game()
 }
 
 
-
+//Initializes the COLLECTABLES Album array of pointers with COLLECTABLE instances
 
 void Initialize_with_pics(COLLECTABLES *Album[3][5])
 {
@@ -464,7 +442,7 @@ void Initialize_with_pics(COLLECTABLES *Album[3][5])
 	}
 
 }
-
+//Responsible for calling the function PrintPicture of each instance to display that instances array of pictures at the relevent section of background
 void Next_Part_Draw(int xx, int yy, int xoff, int yoff, COLLECTABLES *Album[3][5], int &score)
 {
 	for (int k = 0; k < 3; k++)
