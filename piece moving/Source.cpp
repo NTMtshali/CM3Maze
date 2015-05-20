@@ -512,12 +512,12 @@ void Credit()
 
 	std::string content1 = "This game was created by Electronic and Computer Engineering students of Howard College,";
 	std::string content2 = "created in May 2015 as a research class assignment.";
-	std::string content3 = "Thanks to Allegro5, C++, Mappy and Dr John Pool."
+	std::string content3 = "Thanks to Allegro5, C++, Mappy and Dr John Pool.";
 
 	al_init_font_addon();
 	al_init_ttf_addon();
 
-	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);
+	ALLEGRO_FONT *font = al_load_font("font1.ttf", 20, NULL);
 	ALLEGRO_COLOR Blue = al_map_rgb(44, 117, 255);
 
 	int y = ScreenHeight / 2.0 - 3 * al_get_font_line_height(font) / 2.0;
@@ -526,13 +526,15 @@ void Credit()
 	int x2 = ScreenWidth / 2.0 - al_get_text_width(font, content2.c_str()) / 2.0;
 	int x3 = ScreenWidth / 2.0 - al_get_text_width(font, content3.c_str()) / 2.0;
 	
+
+	// this section draws the background picture and draws the above texts,
+	// i.e. content1, content2 and content3
 	DrawImage();
 	al_draw_text(font, Blue, x1, y, NULL, content1.c_str());
 	y += al_get_font_line_height(font) + 10;
 	al_draw_text(font, Blue, x2, y, NULL, content2.c_str());
-	y += al_get_font_line_height(font) + 10;
+	y += al_get_font_line_height(font) + 40;
 	al_draw_text(font, Blue, x3, y, NULL, content3.c_str());
-	y += al_get_font_line_height(font) + 10;
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0, 0, 0));
