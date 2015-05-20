@@ -36,7 +36,6 @@ int clickLink(int);
 void DrawImage();
 void Game(); // Game function
 void Credit();
-
 string Draw1(int increment);
 int main()
 {
@@ -93,7 +92,7 @@ int main()
 		ALLEGRO_EVENT ev; //this object is sort of responsible for recoarding each event that occurrs int the main manue into the queue
 		al_wait_for_event(event_queue, &ev);
 
-/******************************************************************SCROLLING THROUGH THE MAIN MENU*******************************************************************************/
+/******************************************************************SCROLLING THROUGH THE MAMENU*******************************************************************************/
 		//This part is respnsible for scrolling through the menue through the recording of the key press events which also results in the execution of the relevent if statements
 		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			done = true;
@@ -226,7 +225,7 @@ void DrawImage()
 /*************************************************************************************ACTUAL GAME FUNCTION********************************************************************/
 void Game()
 {
-
+	
 	enum Direction { UP, LEFT, DOWN, RIGHT };
 	bool draw = false, active = false;
 	float speed = 10;
@@ -234,7 +233,7 @@ void Game()
 	int yoff = 384;
 	int xx = 0;						 //xx and yy of are the coin picture offsets reletive to the display screen
 	int yy = 0;
-	const float FPS = 60.0;			 //constant for the timer used for updating the display
+	const float FPS = 60.0;		 //constant for the timer used for updating the display
 	int dir = UP, sourceX = 64, sourceY = 0;
 
 	//Installation and initialization of the keyboard, sound and image, font addons.
@@ -266,10 +265,9 @@ void Game()
 	//registration of event sources so that they can be detected when they occure
 	al_register_event_source(events, al_get_keyboard_event_source());
 	al_register_event_source(events, al_get_timer_event_source(timer));
+	bool isActive = false; // used as the while condition and allows to game to exit when escape is pressed
 
 	al_start_timer(timer);
-
-	bool isActive = false; // used as the while condition and allows to game to exit when escape is pressed
 	while (!isActive)
 	{
 
@@ -277,7 +275,7 @@ void Game()
 		al_wait_for_event(events, &ev);
 		al_get_keyboard_state(&keyState);
 
-		if (ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE || hrL >= 1) 
+		if ((ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE) || (hrL >= 3)) 
 		{
 			isActive = true;
 		}
@@ -322,7 +320,7 @@ void Game()
 					yoff = yoff - speed;
 					yy = yy - speed;
 				}
-				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);  //play sound after each movement
+				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);   //play sound after each movement
 			}
 			else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT))				 //if key UP is pressed, do the	the follwing:
 			{
@@ -389,15 +387,21 @@ void Game()
 
 		if (draw)
 		{		//updating the maze, player, coin picture position and the time
+			if (hrL >= 2)
+			{
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				al_draw_textf(font, grass, ScreenWidth / 2, ScreenHeight / 2, ALLEGRO_ALIGN_CENTER, "Gameover", score);
+				al_draw_text(font, grass, ScreenWidth / 2, (ScreenHeight / 2) + 300, ALLEGRO_ALIGN_CENTER, "You Ran out of Time");
 
-			if (xoff >= 7040)
+			}
+
+			else if (xoff >= 7040)
 			{
 				//al_show_native_message_box(displays, "WINNER", "MAZE", "YOU SOLVED THE MAZE", NULL, NULL);
 				al_clear_to_color(al_map_rgb(0, 0, 0));
 				al_draw_bitmap(Trophy, 0, 0, NULL);
 				al_draw_text(font, grass, ScreenWidth / 2, (ScreenHeight / 2) - 300, ALLEGRO_ALIGN_CENTER, "CONGRATULATIONS YOU HAVE SOLVED THE MAZE");
-				int x = 900;
-				if (score >= 800)
+				if (score >= 200)
 				{
 					al_draw_textf(font, grass, ScreenWidth / 2, ScreenHeight / 2, ALLEGRO_ALIGN_CENTER, "HIGHSCORE : %i", score);
 					al_draw_text(font, grass, ScreenWidth / 2, (ScreenHeight / 2) + 300, ALLEGRO_ALIGN_CENTER, "YOU QUALIFY TO BE A RUNNER");
