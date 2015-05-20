@@ -18,6 +18,7 @@
 #define ScreenHeight 700
 #define mapHght 4736
 #define itemSize 5
+
 using namespace std;
 
 int hrH, hrL, minL, minH, secL, secH ;	  // time variables
@@ -31,11 +32,11 @@ enum menuItems { nGame, lGame, options, credits, Exit }; //enumerations which as
 void Next_Part_Draw(int xx, int yy, int xoff, int yoff, COLLECTABLES *Album[3][5], int &score); //decleration of the function for displaying the coin pictures on the display screen
 void Initialize_with_pics(COLLECTABLES *Album[3][5]); //decleration of the function that initializes the COLLECTABLES array
 void TimeElapse();
-void DrawTitles(int);
-int clickLink(int);
-void DrawImage();
-void Game(); // Game function
-void Credit();
+void DrawTitles(int);			// Draw main menu titles
+int clickLink(int);				// Return clicks
+void DrawImage();				// Draws background image
+void Game();					// Game function
+void Credit();					// Game builders
 string Draw1(int increment);
 int main()
 {
@@ -104,32 +105,32 @@ int main()
 			{
 			case ALLEGRO_KEY_UP:
 			{
-				if (counter > nGame)
+				if (counter > nGame)		// if counter is zero stop decrementing
 					counter--;
 				break;
 			}
 			case ALLEGRO_KEY_DOWN:
 			{
-				if (counter < Exit)
+				if (counter < Exit)			// if counter is four stop incrementing
 					counter++;
 				break;
 			}
-			case ALLEGRO_KEY_ENTER:
+			case ALLEGRO_KEY_ENTER:						// perform click
 			{
-				if (clickLink(counter) == nGame)
+				if (clickLink(counter) == nGame)		// click title new game
 				{
-					DrawImage();	 //pressing Enter at the new game starts the game
+					DrawImage();					// draw main menu background image
 
-						Game();
+						Game();						// start playing
 					break;
 						
 				}
-				else if (clickLink(counter) == credits)
+				else if (clickLink(counter) == credits)		// click title credit
 				{
-					Credit();
+					Credit();						// view credit
 					break;
 				}
-				else if (clickLink(counter) == Exit)
+				else if (clickLink(counter) == Exit)		// click title exit
 					done = true;
 				break;
 			}
@@ -137,7 +138,7 @@ int main()
 			}
 		}
 
-		if (draw)
+		if (draw)							// update drawings
 		{
 			draw = false;
 			al_draw_bitmap(backImage, 0, 0, NULL);
@@ -148,8 +149,10 @@ int main()
 		}
 
 	}
+
 	/***********************************************************************************************************************************************************************************************/
-	//Destroy the pointers after use to prevent memory leaks
+	// deallocation of memory
+	// Destroy the pointers after use to prevent memory leaks
 	MapFreeMem();
 	al_destroy_display(display);
 	al_destroy_bitmap(backImage);
@@ -161,7 +164,7 @@ int main()
 
 void DrawTitles(int opt)
 {
-	std::string Items[itemSize] = { "New Game", "Load Game", "Options", "Credits", "Exit" };
+	std::string Items[itemSize] = { "New Game", "Load Game", "Options", "Credits", "Exit" };		// main menu titles
 
 	al_init_font_addon();
 	al_init_ttf_addon();
@@ -177,17 +180,19 @@ void DrawTitles(int opt)
 	{
 		int x = ScreenWidth / 2.0 - al_get_text_width(font, Items[i].c_str()) / 2.0;
 
+		// print current selected title white
 		if (opt == i)
 			al_draw_text(font, White, x, y, NULL, Items[i].c_str());
+
+		// print unselected titles blue
 		else
 			al_draw_text(font, Blue, x, y, NULL, Items[i].c_str());
 		y += al_get_font_line_height(font) + 10;
 
 	}
-
-	//al_destroy_font(font);
 }
 
+// this function returns selected clicks
 int clickLink(int item)
 {
 	if (item == nGame)
@@ -202,15 +207,16 @@ int clickLink(int item)
 		return Exit;
 }
 
+// this function draw background picture
 void DrawImage()
 {
 	al_init_font_addon();
 	al_init_ttf_addon();
 
-	ALLEGRO_BITMAP *image2 = al_load_bitmap("image2.png");
-	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);
-	ALLEGRO_COLOR Blue = al_map_rgb(44, 117, 255);
-	ALLEGRO_COLOR White = al_map_rgb(255, 255, 255);
+	ALLEGRO_BITMAP *image2 = al_load_bitmap("image2.png");				// load picture to image2 from the game folder
+	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);			// load font from game folder to font
+	ALLEGRO_COLOR Blue = al_map_rgb(44, 117, 255);						// load blue colour to Blue
+	ALLEGRO_COLOR White = al_map_rgb(255, 255, 255);					// load white colour to White
 
 	al_draw_bitmap(image2, 0, 0, NULL);
 
@@ -283,21 +289,21 @@ void Game()
 		else if (ev.type == ALLEGRO_EVENT_TIMER)			//when the timer ticks, the relevent 'if statement' executes
 		{
 			active = true;
-			if (al_key_down(&keyState, ALLEGRO_KEY_UP))			//if key UP is pressed, do the following
+			if (al_key_down(&keyState, ALLEGRO_KEY_UP))			// if key UP is pressed, do the following
 			{
-				yoff -= speed;				 //offset the map and the displayed coin pictures, opposint to pressed direction
+				yoff -= speed;				 // offset the map and the displayed coin pictures, opposint to pressed direction
 				yy -= speed;
 				dir = UP;
-				if (yoff < 0)			//if the yoff is negetive, set it to zero so that during the display the dark part of the background will not show
+				if (yoff < 0)			// if the yoff is negetive, set it to zero so that during the display the dark part of the background will not show
 					yoff = 0;
 
 
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff);			//get the block where the top left point of the player photo will lie
-				Tile2 = MapGetBlockInPixels(xoff + 25, yoff);		 //get the block where the top right point of the player photo will lie
+				Tile1 = MapGetBlockInPixels(xoff, yoff);			// get the block where the top left point of the player photo will lie
+				Tile2 = MapGetBlockInPixels(xoff + 25, yoff);		 // get the block where the top right point of the player photo will lie
 
-				if (Tile1->tl || Tile2->tl)			//If the top left and/or the top right point of the photo lie on the forbidden block
-				{									//undo the above decrementation. This also prevents the coin picture from moving into forbidden region
+				if (Tile1->tl || Tile2->tl)			// If the top left and/or the top right point of the photo lie on the forbidden block
+				{									// undo the above decrementation. This also prevents the coin picture from moving into forbidden region
 					yoff = yoff + speed;
 					yy = yy + speed;
 				}
@@ -305,41 +311,41 @@ void Game()
 			}
 			else if (al_key_down(&keyState, ALLEGRO_KEY_DOWN))		   // if key DOWN is pressed, do the following:
 			{
-				yoff += speed;										  //offset the map and the displayed coin pictures, opposint to pressed direction
+				yoff += speed;										  // offset the map and the displayed coin pictures, opposint to pressed direction
 				yy += speed;
 				dir = DOWN;
 
-				if (yoff>mapHght - ScreenHeight)						 //this prevents the dark part at the bottom of the background from showing
+				if (yoff>mapHght - ScreenHeight)						 // this prevents the dark part at the bottom of the background from showing
 					yoff = mapHght - ScreenHeight;
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff + 44);			  //get the block where the bottom left point of the player photo lies
-				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 44);			//get the block where the bottom right point of the player photo lies
+				Tile1 = MapGetBlockInPixels(xoff, yoff + 44);			  // get the block where the bottom left point of the player photo lies
+				Tile2 = MapGetBlockInPixels(xoff + 25, yoff + 44);			// get the block where the bottom right point of the player photo lies
 
-				if (Tile1->tl || Tile2->tl)									  //if the bottom left and/or right point of the playert lie on the forbidden block, undo the above incrementations.
-				{																  //This also prevents the coin picture from moving into forbidden region
+				if (Tile1->tl || Tile2->tl)									  // if the bottom left and/or right point of the playert lie on the forbidden block, undo the above incrementations.
+				{																  // This also prevents the coin picture from moving into forbidden region
 					yoff = yoff - speed;
 					yy = yy - speed;
 				}
-				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);   //play sound after each movement
+				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);   // play sound after each movement
 			}
-			else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT))				 //if key UP is pressed, do the	the follwing:
+			else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT))				 // if key UP is pressed, do the	the follwing:
 			{
 				xoff -= speed;
-				xx -= speed;												 //offset the map and the displayed coin picures , opposite to the direction of the pressed button
+				xx -= speed;												 // offset the map and the displayed coin picures , opposite to the direction of the pressed button
 
 				dir = LEFT;
-				if (xoff < 0)												//this prevents the dark part at the far left of the map from showing
+				if (xoff < 0)												// this prevents the dark part at the far left of the map from showing
 				{
 					xoff = 0;
 					xx = 0;
 				}
 
-				Tile1 = MapGetBlockInPixels(xoff, yoff);					 //get the block where the top left point of the player photo lies
-				Tile2 = MapGetBlockInPixels(xoff, yoff + 44);				  //get the block where the bottom left of the phot lies
+				Tile1 = MapGetBlockInPixels(xoff, yoff);					 // get the block where the top left point of the player photo lies
+				Tile2 = MapGetBlockInPixels(xoff, yoff + 44);				  // get the block where the bottom left of the phot lies
 				if (Tile1->tl || Tile2->tl)
 				{
-					xoff = xoff + speed;										  //if the top left and/or bottom right point of the playert lie on the forbidden block, undo the above incrementations.
-					xx = xx + speed;												//This also prevents the coin picture from moving into forbidden region
+					xoff = xoff + speed;										 // if the top left and/or bottom right point of the playert lie on the forbidden block, undo the above incrementations.
+					xx = xx + speed;												// This also prevents the coin picture from moving into forbidden region
 				}
 
 				al_play_sample(soundEffect, 0.5, 0.0, 2.5, ALLEGRO_PLAYMODE_ONCE, 0);
@@ -504,23 +510,29 @@ string Draw1(int increment)
 void Credit()
 {
 
+	std::string content1 = "This game was created by Electronic and Computer Engineering students of Howard College,";
+	std::string content2 = "created in May 2015 as a research class assignment.";
+	std::string content3 = "Thanks to Allegro5, C++, Mappy and Dr John Pool."
+
 	al_init_font_addon();
 	al_init_ttf_addon();
 
-
-	ALLEGRO_BITMAP *Trophy = al_load_bitmap("trophy.png");
 	ALLEGRO_FONT *font = al_load_font("font1.ttf", 30, NULL);
 	ALLEGRO_COLOR Blue = al_map_rgb(44, 117, 255);
-	ALLEGRO_COLOR White = al_map_rgb(255, 255, 255);
 
+	int y = ScreenHeight / 2.0 - 3 * al_get_font_line_height(font) / 2.0;
 
-	int y = ScreenHeight / 2.0 - 5 * al_get_font_line_height(font) / 2.0;
-	int x = ScreenWidth / 2.0 - al_get_text_width(font,"SCORE %i") / 2.0;
+	int x1 = ScreenWidth / 2.0 - al_get_text_width(font, content1.c_str()) / 2.0;
+	int x2 = ScreenWidth / 2.0 - al_get_text_width(font, content2.c_str()) / 2.0;
+	int x3 = ScreenWidth / 2.0 - al_get_text_width(font, content3.c_str()) / 2.0;
 	
-	al_draw_bitmap(Trophy, 0, 0, NULL);
-
-	al_draw_textf(font, al_map_rgb(44, 117, 255), ScreenWidth / 2, ScreenHeight / 2, ALLEGRO_ALIGN_CENTER, "MAXIMUM POINTS   %i", 800);
-	
+	DrawImage();
+	al_draw_text(font, Blue, x1, y, NULL, content1.c_str());
+	y += al_get_font_line_height(font) + 10;
+	al_draw_text(font, Blue, x2, y, NULL, content2.c_str());
+	y += al_get_font_line_height(font) + 10;
+	al_draw_text(font, Blue, x3, y, NULL, content3.c_str());
+	y += al_get_font_line_height(font) + 10;
 
 	al_flip_display();
 	al_clear_to_color(al_map_rgb(0, 0, 0));
